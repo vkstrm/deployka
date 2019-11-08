@@ -7,10 +7,8 @@ import (
 	"strings"
 )
 
-// var baseURL = "https://4wy04hruje.execute-api.eu-west-1.amazonaws.com/deptest/dep"
 var baseURL = ""
-
-var user = "viktor"
+var user = ""
 
 // FetchPipes : Get the pipelines from the API
 func FetchPipes() {
