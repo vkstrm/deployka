@@ -1,26 +1,23 @@
 package internal
 
 import (
-	"bufio"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
-	"strings"
 )
 
 const configPath = "deployka-config"
+
+type configuration struct {
+	Username string
+	URL      string
+}
 
 func errorCheck(err error) {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func getConfigFile() (bool, *os.File) {
-	file, err := os.Open(configPath)
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return true, file
 }
 
 // Deletes and recreates the file if it exists
@@ -29,31 +26,38 @@ func writeToConfig(username string, url string) error {
 	if configFileExists() {
 		deleteConfigFile()
 	}
-	file := createConfigFile()
-	defer file.Close()
-	_, err := file.WriteString(fmt.Sprintf("username=%v", username))
-	_, err = file.WriteString(fmt.Sprintf("url=%s", url))
+
+	info := configuration{
+		Username: username,
+		URL:      url,
+	}
+
+	bytes, err := json.Marshal(info)
+	if err != nil {
+		fmt.Printf("Marshal error: %v", err.Error())
+	}
+
+	err = ioutil.WriteFile(configPath, bytes, 0777)
+	if err != nil {
+		fmt.Printf("WriteFile error: %v", err.Error())
+	}
 	return err
 }
 
-func getConfigValues(file *os.File) (string, string) {
-	scanner := bufio.NewScanner(file)
-	scanner.Scan()
-	err := scanner.Err()
+func getConfigValues() (string, string) {
+	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		panic(err)
+		fmt.Printf("Read file error: %v", err.Error())
 	}
-	username := strings.Split(scanner.Text(), "=")[1]
-	scanner.Scan()
-	err = scanner.Err()
+	var info *configuration
+	err = json.Unmarshal(data, &info)
 	if err != nil {
-		panic(err)
+		fmt.Printf("Unmarshal error: %v", err.Error())
 	}
-	url := strings.Split(scanner.Text(), "=")[1]
-	return username, url
+
+	return info.Username, info.URL
 }
 
-// Only create if it doesn't exist
 func createConfigFile() *os.File {
 	file, err := os.Create(configPath)
 	if err != nil {

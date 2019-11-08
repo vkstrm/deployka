@@ -12,7 +12,9 @@ import (
 // MakeRequest : Will POST the passed MessageBody to the API
 func MakeRequest(url string, body MessageBody) []ResponseBody {
 	response, err := http.Post(url, "application/json", bytes.NewBuffer(marshal(body)))
-	errorCheck(err)
+	if err != nil {
+		fmt.Printf("API request failed: %v", err.Error())
+	}
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {

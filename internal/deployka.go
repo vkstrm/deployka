@@ -39,43 +39,32 @@ func CheckConfig() {
 		os.Exit(0)
 	}
 
-	exists, file := getConfigFile()
-	if file != nil {
-		defer file.Close()
-	}
-	user, baseURL = getConfigValues(file)
+	user, baseURL = getConfigValues()
 }
 
 // Config : Configure the application
 func Config() {
-	exists, file := getConfigFile()
-	defer file.Close()
+	exists := configFileExists()
 	reader := bufio.NewReader(os.Stdin)
 	var username string
 	var url string
 	if exists {
-		username, url = getConfigValues(file)
+		username, url = getConfigValues()
 		fmt.Printf("Configuration exists\n\tUsername: %s\n\tURL: %s\n", username, url)
-		fmt.Print("Make new? [y/n] ")
+		fmt.Print("Make new? [y/N] ")
 		answer, _ := reader.ReadString('\n')
-		if answer != "y" {
+		if answer != "y\n" {
 			fmt.Println("Old configuration kept.")
 			return
 		}
 	}
 
-	for {
-		fmt.Print("Username: ")
-		username, _ = reader.ReadString('\n')
-		if strings.Contains(username, "=") {
-			fmt.Println("The character = is not allowed in username. Try again!")
-		} else {
-			break
-		}
-	}
+	fmt.Print("Username: ")
+	username, _ = reader.ReadString('\n')
 
 	fmt.Print("URL: ")
 	url, _ = reader.ReadString('\n')
+
 	username = strings.TrimSpace(username)
 	url = strings.TrimSpace(url)
 
@@ -84,5 +73,5 @@ func Config() {
 		fmt.Printf("Writig configuration failed\n %v \n", err.Error())
 		os.Exit(1)
 	}
-	fmt.Printf("\nNew configuration\nUsername: %sUrl: %s", username, url)
+	fmt.Printf("\nNew configuration\nUsername: %s\nURL: %s\n", username, url)
 }
