@@ -10,18 +10,6 @@ import (
 
 func main() {
 
-	// var subCmd = &cobra.Command{
-	// 	Use:   "sub",
-	// 	Short: "Subcommand",
-	// 	Long:  `Sub description placeholder`,
-	// 	Run: func(cmd *cobra.Command, args []string) {
-	// 		fmt.Println(args)
-	// 		v, _ := cmd.Flags().GetBool("verbose")
-	// 		fmt.Println(v)
-	// 	},
-	// }
-	// subCmd.Flags().BoolP("verbose", "v", false, "use me plz")
-
 	var blockCmd = &cobra.Command{
 		Use:   "block",
 		Short: "Block one or several pipes",

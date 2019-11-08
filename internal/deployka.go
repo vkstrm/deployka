@@ -76,6 +76,9 @@ func Config() {
 
 	fmt.Print("URL: ")
 	url, _ = reader.ReadString('\n')
+	username = strings.TrimSpace(username)
+	url = strings.TrimSpace(url)
+
 	err := writeToConfig(username, url)
 	if err != nil {
 		fmt.Printf("Writig configuration failed\n %v \n", err.Error())
