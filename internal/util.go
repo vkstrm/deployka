@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-const configPath = ".deployka-config"
+const configPath = "deployka-config"
 
 func errorCheck(err error) {
 	if err != nil {

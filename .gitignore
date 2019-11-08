@@ -1,2 +1,4 @@
 /cmd/deployka/deployka
 /cmd/deployka/main
+/cmd/deployka/deployka-config
+deployka-config
