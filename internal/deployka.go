@@ -3,75 +3,85 @@ package internal
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
 
 var baseURL = ""
-var user = ""
+var apikey = ""
 
 // FetchPipes : Get the pipelines from the API
 func FetchPipes() {
-	res := MakeRequest(baseURL, FetchPipesMessage())
+	res := MakeRequest(baseURL, apikey, FetchPipesMessage())
 	fmt.Print("Current status of the pipes:\n\n")
 	PrintPipes(res)
 }
 
 // BlockPipes : Block the passed pipes
 func BlockPipes(pipes []string) {
-	res := MakeRequest(baseURL, BlockPipeMessage(user, pipes))
+	res := MakeRequest(baseURL, apikey, BlockPipeMessage(pipes))
 	fmt.Printf("Now blocking:\n")
 	PrintPipes(res)
 }
 
 // UnblockPipes : Unblock the passed pipes
 func UnblockPipes(pipes []string) {
-	res := MakeRequest(baseURL, UnblockPipeMessage(user, pipes))
+	res := MakeRequest(baseURL, apikey, UnblockPipeMessage(pipes))
 	fmt.Printf("Unblocked:\n")
 	PrintPipes(res)
 }
 
 // CheckConfig : Check if the config file is present and load the values
 func CheckConfig() {
-	exists := configFileExists()
+	path := getConfigFilePath()
+	exists := pathExists(path)
+
 	if !exists {
 		fmt.Println("Config file is missing. Try \"deployka config\".")
 		os.Exit(0)
 	}
 
-	user, baseURL = getConfigValues()
+	apikey, baseURL = getConfigValues(path)
 }
 
-// Config : Configure the application
+// Config : Configure the application by setting apikey and Deployka API URL
 func Config() {
-	exists := configFileExists()
+	configPath := getConfigFilePath()
+	exists := pathExists(configPath)
 	reader := bufio.NewReader(os.Stdin)
-	var username string
+	var apikey string
 	var url string
+
 	if exists {
-		username, url = getConfigValues()
-		fmt.Printf("Configuration exists\n\tUsername: %s\n\tURL: %s\n", username, url)
+		apikey, url = getConfigValues(configPath)
+		fmt.Printf("Configuration exists\n\tAPI key: %s\n\tURL: %s\n", apikey, url)
 		fmt.Print("Make new? [y/N] ")
 		answer, _ := reader.ReadString('\n')
+
 		if answer != "y\n" {
 			fmt.Println("Old configuration kept.")
 			return
 		}
+	} else {
+		initConfigFile()
 	}
 
-	fmt.Print("Username: ")
-	username, _ = reader.ReadString('\n')
+	fmt.Print("API key: ")
+	apikey, _ = reader.ReadString('\n')
 
 	fmt.Print("URL: ")
 	url, _ = reader.ReadString('\n')
 
-	username = strings.TrimSpace(username)
+	apikey = strings.TrimSpace(apikey)
 	url = strings.TrimSpace(url)
 
-	err := writeToConfig(username, url)
+	err := writeToFile(configPath, apikey, url)
+
 	if err != nil {
-		fmt.Printf("Writig configuration failed\n %v \n", err.Error())
+		log.Printf("Writig configuration failed\n %v \n", err.Error())
 		os.Exit(1)
 	}
-	fmt.Printf("\nNew configuration\nUsername: %s\nURL: %s\n", username, url)
+
+	fmt.Printf("\nNew configuration\nAPI key: %s\nURL: %s\n", apikey, url)
 }

@@ -3,46 +3,69 @@ package internal
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
 // MakeRequest : Will POST the passed MessageBody to the API
-func MakeRequest(url string, body MessageBody) []ResponseBody {
-	response, err := http.Post(url, "application/json", bytes.NewBuffer(marshal(body)))
+func MakeRequest(url string, key string, body MessageBody) []ResponseBody {
+	b := marshal(body)
+	client := &http.Client{}
+	request, _ := http.NewRequest("POST", url, bytes.NewBuffer(b))
+	request.Header.Set("x-api-key", key)
+	request.Header.Set("Content-Type", "application/json")
+	response, err := client.Do(request)
+
 	if err != nil {
-		fmt.Printf("API request failed: %v", err.Error())
+		log.Println("API request failed. Check the URL.")
+		panic(err)
 	}
+
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
-		fmt.Printf("Response returned with status %d", response.StatusCode)
+		log.Printf("Response returned with status %d", response.StatusCode)
 		panic(response.StatusCode)
 	}
 
 	return grabResponseBody(response.Body)
 }
 
+// Marshal the message body to bytes
 func marshal(body MessageBody) []byte {
 	bytes, err := json.Marshal(body)
-	errorCheck(err)
+
+	if err != nil {
+		log.Println("Failed to marshal")
+		panic(err)
+	}
 
 	return bytes
 }
 
+// Get the responsebody from the reader
 func grabResponseBody(body io.Reader) []ResponseBody {
 	bytes, err := ioutil.ReadAll(body)
-	errorCheck(err)
+
+	if err != nil {
+		log.Println("Failed to read")
+		panic(err)
+	}
 
 	return unmarshal(bytes)
 }
 
+// Unmarshal the bytes to a response body
 func unmarshal(bytes []byte) []ResponseBody {
 	var resBody []ResponseBody
 	err := json.Unmarshal(bytes, &resBody)
-	errorCheck(err)
+
+	if err != nil {
+		log.Println("Failed to unmarshal")
+		panic(err)
+	}
 
 	return resBody
 }

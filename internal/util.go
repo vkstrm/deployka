@@ -2,29 +2,70 @@ package internal
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
+	"os/user"
+	"path"
 )
-
-const configPath = "deployka-config"
 
 type configuration struct {
 	Username string
 	URL      string
 }
 
-func errorCheck(err error) {
+// Initialize the configuration file
+func initConfigFile() {
+	basepath := getBasePath()
+
+	if !pathExists(basepath) {
+		err := os.Mkdir(basepath, 0777)
+
+		if err != nil {
+			log.Println("Couldn't create config folder.")
+			panic(err)
+		}
+	}
+
+	cpath := path.Join(basepath, "config")
+
+	err := createFile(cpath)
 	if err != nil {
+		log.Println("Couldn't create config file.")
 		panic(err)
 	}
 }
 
+// Get home/.deployka
+func getBasePath() string {
+	const configDir = ".deployka"
+
+	user, err := user.Current()
+
+	if err != nil {
+		log.Println("Couldn't get user.")
+		panic(err)
+	}
+
+	return path.Join(user.HomeDir, configDir)
+}
+
+// Get path/.deployka/config
+func getConfigFilePath() string {
+	return path.Join(getBasePath(), "config")
+}
+
+// Write the configuration to the file at path
 // Deletes and recreates the file if it exists
-// TODO: It'd be nice if it could be done better
-func writeToConfig(username string, url string) error {
-	if configFileExists() {
-		deleteConfigFile()
+func writeToFile(path string, username string, url string) error {
+	if pathExists(path) {
+		deleteFile(path)
+		err := createFile(path)
+
+		if err != nil {
+			log.Println("Failed to change configuration.")
+			panic(err)
+		}
 	}
 
 	info := configuration{
@@ -34,49 +75,54 @@ func writeToConfig(username string, url string) error {
 
 	bytes, err := json.Marshal(info)
 	if err != nil {
-		fmt.Printf("Marshal error: %v", err.Error())
+		log.Printf("Marshal error: %v", err.Error())
 	}
 
-	err = ioutil.WriteFile(configPath, bytes, 0777)
+	err = ioutil.WriteFile(path, bytes, 0777)
 	if err != nil {
-		fmt.Printf("WriteFile error: %v", err.Error())
+		log.Printf("WriteFile error: %v", err.Error())
 	}
 	return err
 }
 
-func getConfigValues() (string, string) {
-	data, err := ioutil.ReadFile(configPath)
+// Get the configuration values from the file at path
+func getConfigValues(path string) (string, string) {
+	data, err := ioutil.ReadFile(path)
+
 	if err != nil {
-		fmt.Printf("Read file error: %v", err.Error())
+		log.Printf("Read file error: %v", err.Error())
 	}
+
 	var info *configuration
 	err = json.Unmarshal(data, &info)
+
 	if err != nil {
-		fmt.Printf("Unmarshal error: %v", err.Error())
+		log.Printf("Unmarshal error: %v", err.Error())
 	}
 
 	return info.Username, info.URL
 }
 
-func createConfigFile() *os.File {
-	file, err := os.Create(configPath)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-	return file
+// Create a file at path
+func createFile(filepath string) error {
+	_, err := os.Create(filepath)
+	return err
 }
 
-func deleteConfigFile() {
-	err := os.Remove(configPath)
+// Delete file at path
+func deleteFile(path string) {
+	err := os.Remove(path)
+
 	if err != nil {
-		fmt.Printf("Error when removing file\n%s", err.Error())
+		log.Printf("Error when removing file\n%s", err.Error())
 		os.Exit(1)
 	}
 }
 
-func configFileExists() bool {
-	_, err := os.Stat(configPath)
+// Check if file path has anything
+func pathExists(path string) bool {
+	_, err := os.Stat(path)
+
 	if os.IsNotExist(err) {
 		return false
 	}

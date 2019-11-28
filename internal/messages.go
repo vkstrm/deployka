@@ -3,7 +3,6 @@ package internal
 // MessageBody : Available actions: get-pipes, block, unblock
 // Available pipes (that go under block or unblock): ...
 type MessageBody struct {
-	User    string   `json:"user,omitempty"`
 	Action  string   `json:"action"`
 	Block   []string `json:"block,omitempty"`
 	Unblock []string `json:"unblock,omitempty"`
@@ -22,18 +21,16 @@ func FetchPipesMessage() MessageBody {
 }
 
 // BlockPipeMessage : Returns a MessageBody for blocking passed pipes
-func BlockPipeMessage(user string, pipes []string) MessageBody {
+func BlockPipeMessage(pipes []string) MessageBody {
 	return MessageBody{
-		User:   user,
 		Action: "block",
 		Block:  pipes,
 	}
 }
 
 // UnblockPipeMessage : Returns a MessageBody for unblocking passed pipes
-func UnblockPipeMessage(user string, pipes []string) MessageBody {
+func UnblockPipeMessage(pipes []string) MessageBody {
 	return MessageBody{
-		User:    user,
 		Action:  "unblock",
 		Unblock: pipes,
 	}

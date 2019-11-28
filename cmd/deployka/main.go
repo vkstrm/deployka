@@ -45,7 +45,7 @@ func main() {
 	var initCmd = &cobra.Command{
 		Use:   "config",
 		Short: "Configure this client",
-		Long:  "Configure your username to use when blocking and the endpoint URL",
+		Long:  "Configure your API key and the endpoint URL",
 		Run: func(cmd *cobra.Command, args []string) {
 			internal.Config()
 		},
