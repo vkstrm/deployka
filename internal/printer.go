@@ -14,11 +14,20 @@ func PrintPipes(pipes []ResponseBody) {
 			fmt.Printf("%s\n", PrintWithColour("Allowed", green))
 		} else {
 			fmt.Printf("%s\t", PrintWithColour("Blocked", red))
-			if len(pipes[i].BlockedBy) > 0 {
-				fmt.Printf("Blocked by: %v\n", strings.Join(pipes[i].BlockedBy, ", "))
+			var at string
+			if len(pipes[i].BlockedBy) == 1 {
+				at = "At"
+			} else if len(pipes[i].BlockedBy) > 1 {
+				at = "Latest at"
+				fmt.Printf("Blocked by: %v\t%s: %v", strings.Join(pipes[i].BlockedBy, ", "), at, datePrint(pipes[i].BlockedAt))
 			}
+			fmt.Print("\n")
 		}
 	}
+}
+
+func datePrint(date map[string]string) string {
+	return fmt.Sprintf("%v/%v/%v %v:%v", date["year"], date["month"], date["dateay"], date["hour"], date["min"])
 }
 
 // Colours for the printing

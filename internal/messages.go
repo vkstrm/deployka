@@ -10,9 +10,17 @@ type MessageBody struct {
 
 // ResponseBody : Map response to this struct
 type ResponseBody struct {
-	Pipename  string   `json:"pipename"`
-	Allowed   bool     `json:"allowed"`
-	BlockedBy []string `json:"blockedBy"`
+	Pipename  string            `json:"pipename"`
+	Allowed   bool              `json:"allowed"`
+	BlockedBy []string          `json:"blockedBy"`
+	BlockedAt map[string]string `json:"blockedAt,omitempty"`
+	// BlockedAt struct {
+	// 	Year  int `json:"year"`
+	// 	Month int `json:"month"`
+	// 	Day   int `json:"day"`
+	// 	Hour  int `json:"hour"`
+	// 	Min   int `json:"min"`
+	// } `json:"blockedAt,omitempty"`
 }
 
 // FetchPipesMessage : Returns a MessageBody for getting the pipes and their status

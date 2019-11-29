@@ -1,5 +1,6 @@
 import boto3
 import json
+import time
 import os
 
 tableName = "Deployka"
@@ -48,11 +49,13 @@ def lambda_handler(event, context):
                 response = update_pipes(deploykaTable, body['unblock'], key['name'], UNBLOCK)
 
         except Exception as error:
+            print(error)
             return {
                 "statusCode": 500,
                 "body": json.dumps(
                     f"Something went wrong on the server but the operation may have partially completed.\n Message: {error}")
             }
+        print(response)
         return {
             "statusCode": 200,
             "body": json.dumps(response)
@@ -114,14 +117,18 @@ def update_pipes(table, pipes, user, operation):
             if not blockDict[pipe]:
                 allowed = True
 
+        t = time.gmtime()
+        timestamp = {'year':str(t.tm_year), 'month':str(t.tm_mon), 'day':str(t.tm_mday), 'hour':str(t.tm_hour), 'min':str(t.tm_min)}
+
         table.update_item(
             Key={
                 'Pipename': pipe
             },
-            UpdateExpression="SET BlockedBy = :b, Allowed = :a",
+            UpdateExpression="SET BlockedBy = :b, Allowed = :a, BlockedAt = :t",
             ExpressionAttributeValues={
                 ':b': blockDict[pipe],
-                ':a': allowed
+                ':a': allowed,
+                ':t': timestamp
             },
         )
 

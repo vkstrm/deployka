@@ -53,11 +53,10 @@ func marshal(body MessageBody) []byte {
 	return bytes
 }
 
-
-
 // Unmarshal the bytes to a response body
 func unmarshal(bytes []byte) ([]ResponseBody, error) {
 	var resBody []ResponseBody
+	log.Printf("unmarshaling body: %s", string(bytes))
 	err := json.Unmarshal(bytes, &resBody)
 
 	if err != nil {
