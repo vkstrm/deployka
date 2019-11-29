@@ -15,7 +15,7 @@ func PrintPipes(pipes []ResponseBody) {
 		} else {
 			fmt.Printf("%s\t", PrintWithColour("Blocked", red))
 			if len(pipes[i].BlockedBy) > 0 {
-				fmt.Printf("Blocked by: %v\n", strings.Join(pipes[i].BlockedBy, ","))
+				fmt.Printf("Blocked by: %v\n", strings.Join(pipes[i].BlockedBy, ", "))
 			}
 		}
 	}

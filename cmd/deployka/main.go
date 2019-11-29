@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -16,9 +18,14 @@ func main() {
 		Long:  "Block one or several pipes by writing their names",
 		Run: func(cmd *cobra.Command, args []string) {
 			internal.CheckConfig()
-			internal.BlockPipes(args)
+			err := internal.BlockPipes(args)
+			if err != nil {
+				fmt.Printf("error: %v\n", err)
+				os.Exit(1)
+			}
 		},
 	}
+	addCommonFlags(blockCmd)
 
 	var unblockCmd = &cobra.Command{
 		Use:   "unblock",
@@ -26,9 +33,28 @@ func main() {
 		Long:  "Unblock one or several pipes by writing their names",
 		Run: func(cmd *cobra.Command, args []string) {
 			internal.CheckConfig()
-			internal.UnblockPipes(args)
+			err := internal.UnblockPipes(args)
+			if err != nil {
+				fmt.Printf("error: %v\n", err)
+				os.Exit(1)
+			}
 		},
 	}
+	addCommonFlags(unblockCmd)
+
+	var initCmd = &cobra.Command{
+		Use:   "config",
+		Short: "Configure this client",
+		Long:  "Configure your API key and the endpoint URL",
+		Run: func(cmd *cobra.Command, args []string) {
+			err := internal.Config(os.Stdin)
+			if err != nil {
+				fmt.Printf("error: %v\n", err)
+				os.Exit(1)
+			}
+		},
+	}
+	addCommonFlags(initCmd)
 
 	var rootCmd = &cobra.Command{
 		Use:   "deployka",
@@ -38,18 +64,24 @@ func main() {
 			"Of course, anyone is free to ignore blockage but Deployka doesn't support that kind of behaviour.\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			internal.CheckConfig()
-			internal.FetchPipes()
+			err := internal.FetchPipes()
+			if err != nil {
+				fmt.Printf("error: %v\n", err)
+				os.Exit(1)
+			}
 		},
-	}
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			verbose, err := cmd.Flags().GetBool("verbose")
+			if err != nil {
+				panic(err)
+			}
 
-	var initCmd = &cobra.Command{
-		Use:   "config",
-		Short: "Configure this client",
-		Long:  "Configure your API key and the endpoint URL",
-		Run: func(cmd *cobra.Command, args []string) {
-			internal.Config()
+			if !verbose {
+				log.SetOutput(ioutil.Discard)
+			}
 		},
 	}
+	addCommonFlags(rootCmd)
 
 	rootCmd.AddCommand(blockCmd)
 	rootCmd.AddCommand(unblockCmd)
@@ -59,4 +91,8 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+}
+
+func addCommonFlags(cmd *cobra.Command) {
+	cmd.Flags().BoolP("verbose", "v", false, "Whether to output detailed information")
 }

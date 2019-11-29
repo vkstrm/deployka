@@ -2,11 +2,15 @@ package internal
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
+	neturl "net/url"
 	"os"
 	"os/user"
 	"path"
+	"regexp"
+	"strings"
 )
 
 type configuration struct {
@@ -15,15 +19,14 @@ type configuration struct {
 }
 
 // Initialize the configuration file
-func initConfigFile() {
+func initConfigFile() error {
 	basepath := getBasePath()
 
 	if !pathExists(basepath) {
 		err := os.Mkdir(basepath, 0777)
 
 		if err != nil {
-			log.Println("Couldn't create config folder.")
-			panic(err)
+			return fmt.Errorf("failed to create configuration directory: %v", err)
 		}
 	}
 
@@ -31,9 +34,10 @@ func initConfigFile() {
 
 	err := createFile(cpath)
 	if err != nil {
-		log.Println("Couldn't create config file.")
-		panic(err)
+		return fmt.Errorf("failed to create configuration file: %v", err)
 	}
+
+	return nil
 }
 
 // Get home/.deployka
@@ -64,7 +68,7 @@ func writeToFile(path string, username string, url string) error {
 
 		if err != nil {
 			log.Println("Failed to change configuration.")
-			panic(err)
+			return fmt.Errorf("failed to overwrite existing configuration file: %v", err)
 		}
 	}
 
@@ -76,13 +80,14 @@ func writeToFile(path string, username string, url string) error {
 	bytes, err := json.Marshal(info)
 	if err != nil {
 		log.Printf("Marshal error: %v", err.Error())
+		return fmt.Errorf("failed during serialization of configuration file: %v", err)
 	}
 
 	err = ioutil.WriteFile(path, bytes, 0777)
 	if err != nil {
-		log.Printf("WriteFile error: %v", err.Error())
+		return fmt.Errorf("failed to write configuration file: %v", err)
 	}
-	return err
+	return nil
 }
 
 // Get the configuration values from the file at path
@@ -127,4 +132,28 @@ func pathExists(path string) bool {
 		return false
 	}
 	return true
+}
+
+func parseAPIKey(key string) (string, error) {
+	key = strings.TrimSpace(key)
+	re := regexp.MustCompile(`^[a-zA-Z0-9]{20,50}$`)
+
+	if !re.MatchString(key) {
+		return "", fmt.Errorf("invalid API key format: %s", key)
+	}
+
+	return key, nil
+}
+
+func parseURL(u string) (string, error) {
+	url, err := neturl.Parse(strings.TrimSpace(u))
+	if err != nil {
+		return "", err
+	}
+
+	if url.Scheme != "https" {
+		return "", fmt.Errorf("missing or wrong scheme in URL: %s", u)
+	}
+
+	return url.String(), nil
 }
