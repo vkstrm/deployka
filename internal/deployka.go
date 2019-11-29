@@ -21,15 +21,25 @@ func FetchPipes() {
 // BlockPipes : Block the passed pipes
 func BlockPipes(pipes []string) {
 	res := MakeRequest(baseURL, apikey, BlockPipeMessage(pipes))
-	fmt.Printf("Now blocking:\n")
-	PrintPipes(res)
+
+	if len(res) == 0 {
+		fmt.Println("No pipes blocked")
+	} else {
+		fmt.Printf("Now blocking:\n")
+		PrintPipes(res)
+	}
 }
 
 // UnblockPipes : Unblock the passed pipes
 func UnblockPipes(pipes []string) {
 	res := MakeRequest(baseURL, apikey, UnblockPipeMessage(pipes))
-	fmt.Printf("Unblocked:\n")
-	PrintPipes(res)
+
+	if len(res) == 0 {
+		fmt.Println("No pipes unblocked")
+	} else {
+		fmt.Printf("Unblocked:\n")
+		PrintPipes(res)
+	}
 }
 
 // CheckConfig : Check if the config file is present and load the values

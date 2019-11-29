@@ -95,6 +95,12 @@ def get_blocked_dict(table, pipes) -> dict:
 # Either blocks or unblocks the passed pipes.
 def update_pipes(table, pipes, user, operation):
     allowed_pipes = json.loads(os.environ['pipenames'])
+
+    for pipe in pipes:
+        if pipe not in allowed_pipes:
+            pipes.remove(pipe)
+
+
     blockDict = get_blocked_dict(table, pipes)
     updates = []
 
