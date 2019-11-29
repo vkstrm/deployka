@@ -40,18 +40,20 @@ func initConfigFile() error {
 	return nil
 }
 
-// Get home/.deployka
+// Get the configuration file directory
 func getBasePath() string {
-	const configDir = ".deployka"
+	if dir := os.Getenv(ConfigDirEnv); dir != "" {
+		return dir
+	}
 
-	user, err := user.Current()
+	usr, err := user.Current()
 
 	if err != nil {
 		log.Println("Couldn't get user.")
 		panic(err)
 	}
 
-	return path.Join(user.HomeDir, configDir)
+	return path.Join(usr.HomeDir, ".deployka")
 }
 
 // Get path/.deployka/config
